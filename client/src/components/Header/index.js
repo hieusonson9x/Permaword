@@ -30,7 +30,7 @@ export default function Header() {
       <AppBar color='transparent' position='static'>
         <Toolbar>
           {/* <img className={classes.logo} src="https://i.imgur.com/uk28IEx.png" alt='logo' /> */}
-          <h1>Blogeave</h1>
+          <h1>Permaword</h1>
           <Link to='/' className={classes.rmd}>
             <Button className={classes.bl} color='inherit'>
               <h3>Post</h3>

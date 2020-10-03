@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { makeStyles, Grid, Paper, Button, InputBase } from '@material-ui/core';
 import ReactMarkdown from 'react-markdown';
 import SimpleMDE from 'react-simplemde-editor';
@@ -47,22 +47,39 @@ export default function Post() {
   const [wallet, setWallet] = useState(null);
   const [loggedIn, setLoggedIn] = useState(false);
 
+  useEffect(() => {
+    const loggin = async () => {
+      let wallet = JSON.parse(localStorage.getItem('wallet'));
+      if (wallet) {
+        setWallet(wallet);
+        setLoggedIn(true);
+      }
+    };
+    loggin();
+  }, []);
+
   const signIn = async event => {
     var fr = new FileReader();
     fr.onload = e => {
       try {
         const wallet = JSON.parse(e.target.result);
-        console.log('wallet', wallet);
         setWallet(wallet);
         setLoggedIn(true);
         arweave.wallets.jwkToAddress(wallet).then(async address => {
           localStorage.setItem('address', JSON.stringify(address));
+          localStorage.setItem('wallet', JSON.stringify(wallet));
         });
       } catch (e) {
         console.log(e);
       }
     };
     fr.readAsText(event.target.files[0]);
+  };
+
+  const logout = async () => {
+    localStorage.removeItem('address');
+    localStorage.removeItem('wallet');
+    setLoggedIn(false);
   };
 
   const generateHTML = async () => {
@@ -84,6 +101,7 @@ export default function Post() {
         );
         trans.addTag('Content-Type', 'text/html');
         trans.addTag('blog', 'Blogeave');
+        trans.addTag('title', title.toString());
         await arweave.transactions.sign(trans, wallet);
         await arweave.transactions.post(trans);
         setUrl(trans.id);
@@ -125,9 +143,14 @@ export default function Post() {
               Sign In to upload
             </label>
           ) : (
-            <Button variant='outlined' color='primary' onClick={() => generateHTML()}>
-              Upload to Arweave
-            </Button>
+            <div>
+              <Button variant='outlined' color='primary' onClick={() => generateHTML()}>
+                Upload to Arweave
+              </Button>
+              <Button variant='outlined' color='secondary' onClick={() => logout()}>
+                Logout
+              </Button>
+            </div>
           )}
           <input
             id='login'
